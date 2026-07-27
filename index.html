@@ -1619,20 +1619,28 @@ function selectPaymentMethod(type) {
 function confirmPayment() {
     const ssInput = document.getElementById('payment-ss');
     const telegramCheck = document.getElementById('telegram-check');
+    const userInput = document.getElementById('mlbb-userid');
+    const zoneInput = document.getElementById('mlbb-zoneid');
 
-    // 1. ငွေလွှဲပြေစာ တင်ထားရဲ့လား စစ်မည်
+    // 1. Game ID နဲ့ Zone ID ဖြည့်ထားရဲ့လား စစ်မည်
+    if (!userInput.value.trim() || !zoneInput.value.trim()) {
+        showInlineError('ကျေးဇူးပြု၍ Game ID နှင့် Zone ID ကို အပြည့်အစုံ ထည့်သွင်းပါ။');
+        return;
+    }
+
+    // 2. ငွေလွှဲပြေစာ တင်ထားရဲ့လား စစ်မည်
     if (!ssInput.files || ssInput.files.length === 0) {
         showInlineError('ကျေးဇူးပြု၍ ငွေလွှဲပြေစာ (Screenshot) ပုံ တင်ပေးပါ။');
         return;
     }
 
-    // 2. Telegram Join ရန် အမှန်ခြစ် ခြစ်ထားရဲ့လား စစ်မည်
-    if (!telegramCheck.checked) {
+    // 3. Telegram Join ရန် အမှန်ခြစ် ခြစ်ထားရဲ့လား စစ်မည်
+    if (telegramCheck && !telegramCheck.checked) {
         showInlineError('ကျေးဇူးပြု၍ Telegram Channel သို့ Join ပြီးကြောင်း အမှန်ခြစ်ပေးပါ။');
         return;
     }
 
-    // 3. localStorage ထဲက Sign in ဝင်ထားတဲ့ User Data ကို ဆွဲထုတ်မည်
+    // 4. localStorage ထဲက Sign in ဝင်ထားတဲ့ User Data ကို ဆွဲထုတ်မည်
     const savedUser = localStorage.getItem('tg_user');
     if (!savedUser) {
         showInlineError('Telegram ဖြင့် အရင် ဝင်ရောက်ပေးပါ။');
@@ -1641,39 +1649,44 @@ function confirmPayment() {
     }
     const user = JSON.parse(savedUser);
 
-    // 4. Order အချက်အလက်များ စုဆောင်းမည်
+    // Error Message တွေ ရှိနေရင် ရှင်းထုတ်မယ်
+    showInlineError('');
+
+    // 5. Order အချက်အလက်များ စုဆောင်းမည်
     const selectedItem = document.getElementById('selected-item-name').innerText;
     const selectedPrice = document.getElementById('selected-item-price').innerText;
-    const userId = document.getElementById('mlbb-userid').value.trim();
-    const zoneId = document.getElementById('mlbb-zoneid').value.trim();
+    const userId = userInput.value.trim();
+    const zoneId = zoneInput.value.trim();
+    const usernameDisplay = user.username ? `@${user.username}` : 'No Username';
 
     // --- TELEGRAM BOT API CONFIG ---
     const botToken = "8968745765:AAE8bU8alUdsPT1yTgQbTvmSFvrrovPOpQA"; 
-    const adminChatId = "7633244675";     // Admin ရဲ့ သီးသန့် Chat ID (သို့မဟုတ် User ID)
-    const channelChatId = "@Juejue_seller_gp";  // Public Channel Username
+    const adminChatId = "7633244675";     
+    const channelChatId = "@Juejue_seller_gp";  
 
     const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
-    // 5. Channel ထဲ ပို့မယ့် Message (ပုံမှန်အတိုင်း Public မြင်ရမည့် ပုံစံ)
-    const channelMessage = `🚨 **New Order Received! (Karo Store)** 🚨\n\n` +
+    // 6. Channel ဆီ ပို့မယ့် Message (PUBG လို ပုံစံတူ မွှမ်းထားသည်)
+    const channelMessage = `🚨 **New MLBB Order! (Karo Store)** 🚨\n\n` +
                            `📦 **ပစ္စည်း:** ${selectedItem}\n` +
                            `💰 **ကျသင့်ငွေ:** ${selectedPrice}\n` +
-                           `🎮 **Game ID:** \`${userId} (${zoneId})\`\n\n` +
+                           `🆔 **Game ID:** \`${userId} (${zoneId})\`\n\n` +
                            `👤 **ဝယ်ယူသူ (Telegram):**\n` +
                            `- နာမည်: ${user.first_name}\n` +
-                           `- Username: @${user.username}\n` +
+                           `- Username: ${usernameDisplay}\n` +
                            `- User ID: \`${user.id}\``;
 
-    // 6. Admin ဆီ ပို့မယ့် Message (ID တွေ Tap to Copy လုပ်လို့လွယ်အောင် နဲ့ Smile One Link ပါမယ်)
-    const adminMessage = `⭐ **ADMIN ORDER ALERT** ⭐\n\n` +
+    // 7. Admin ဆီ ပို့မယ့် Message
+    const adminMessage = `⭐ **ADMIN MLBB ORDER** ⭐\n\n` +
                          `📦 **ပစ္စည်း:** ${selectedItem}\n` +
                          `💰 **ကျသင့်ငွေ:** ${selectedPrice}\n\n` +
-                         `🎮 **Game ID:** \`${userId}\`\n` +
-                         `🌍 **Zone ID:** \`${zoneId}\`\n\n` +
-                         `🔗 **Top-up Site:** [Smile One သို့ သွားရန် နှိပ်ပါ](https://www.smile.one/mer/mlbb)\n\n` +
-                         `👤 **ဝယ်ယူသူ:** ${user.first_name} (@${user.username})`;
+                         `🆔 **Game ID:** \`${userId}\`\n` +
+                         `📌 **Zone ID:** \`${zoneId}\`\n\n` +
+                         `🔗 **Top-up Site:** [Smile One (MLBB) သို့ သွားရန် နှိပ်ပါ](https://www.smile.one/mer/mlbb)\n\n` +
+                         `👤 **ဝယ်ယူသူ:** ${user.first_name} (${usernameDisplay})\n` +
+                         `🆔 **Telegram User ID:** \`${user.id}\``;
 
-    // 7. သီးသန့် ပို့ပေးမယ့် Helper Function
+    // 8. သီးသန့် ပို့ပေးမယ့် Helper Function
     const sendNotification = (targetChatId, captionText) => {
         const formData = new FormData();
         formData.append('chat_id', targetChatId);
@@ -1687,26 +1700,26 @@ function confirmPayment() {
         }).then(res => res.json());
     };
 
-    // 8. Admin ဆီနဲ့ Channel ဆီကို တစ်ပြိုင်တည်း (Parallel) ပစ်မည်
+    // 9. Admin ဆီနဲ့ Channel ဆီကို တစ်ပြိုင်တည်း ပစ်မည်
     Promise.all([
-        sendNotification(adminChatId, adminMessage),     // Admin ဆီ (Link နဲ့ ID Copy ရမည့် ပုံစံ)
-        sendNotification(channelChatId, channelMessage) // Channel ဆီ (ပုံမှန် Public ပုံစံ)
+        sendNotification(adminChatId, adminMessage),     
+        sendNotification(channelChatId, channelMessage) 
     ])
     .then(results => {
-        showInlineError('✅ Successful Order! အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။');
+        showInlineError('✅ Successful Order! Admin မှ အမြန်ဆုံး ဖြည့်သွင်းပေးပါမည်။');
         setTimeout(() => {
             goHomeWithTransition();
-        }, 2000);
+        }, 3000);
     })
     .catch(error => {
         console.error('Network Error:', error.message);
-        // Network Error တက်ရင်တောင် User ဘက်မှာ Order တင်ပြီးကြောင်း ယူဆပြီး အောင်မြင်ကြောင်း ပြမည်
-        showInlineError('✅ Successful Order. အားပေးမှုအတွက် ကျေးဇူးတင်ပါသည်။');
+        showInlineError('✅ Successful Order. ကျေးဇူးတင်ပါသည်။');
         setTimeout(() => {
             goHomeWithTransition();
-        }, 2000);
+        }, 3000);
     });
 }
+        
 function showInlineError(msg) {
     let toast = document.getElementById('toast-notification');
     
