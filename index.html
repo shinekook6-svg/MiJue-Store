@@ -1151,26 +1151,22 @@ const assetsToLoad = [
             }, 1500);
         }
         function openTelegramLoginPage() {
-    // 1. Telegram Mini App ထဲက ဝင်လာတာ ဟုတ်မဟုတ် အရင်စစ်မယ်
     const tg = window.Telegram && window.Telegram.WebApp;
     const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
 
     if (tgUser) {
-        // Telegram Mini App ထဲက ဝင်လာတာဖြစ်လို့ Login ခလုတ်ပြစရာမလိုဘဲ 
-        // User ရဲ့ Data ကို ယူပြီး Store စာမျက်နှာကို တန်းဖွင့်ပေးလိုက်မယ်
         console.log("Telegram Mini App user detected:", tgUser);
-        
-        // LocalStorage မှာ သိမ်းချင်လည်း သိမ်းလို့ရတယ်
         localStorage.setItem('tg_user', JSON.stringify(tgUser));
 
-        // Store ရဲ့ ပင်မ Page ကို တန်းခေါ်လိုက်မယ် (မင်းရဲ့ Store ပွင့်တဲ့ function နာမည်နဲ့ လဲပေးရမယ်)
-        if (typeof renderStorePage === 'function') {
-            renderStorePage(tgUser);
+        // ⚠️ renderStorePage အစား မင်းဆီမှာရှိတဲ့ goHomeWithTransition ကို တန်းခေါ်လိုက်မယ်
+        if (typeof goHomeWithTransition === 'function') {
+            goHomeWithTransition();
+        } else if (typeof goHome === 'function') {
+            goHome();
         }
-        return; // ဒီအောက်ကို ဆက်မသွားတော့ဘူး
+        return;
     }
 
-    // 2. ရိုးရိုး Browser (Chrome/Safari) ကနေ ဝင်လာရင်တော့ မူလအတိုင်း Telegram Login Widget ခလုတ်ကို ပြမယ်
     const mainApp = document.getElementById('main-app');
     mainApp.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; background: radial-gradient(circle at center, #3b1446 0%, #1a0b1e 100%);">
@@ -1211,7 +1207,6 @@ const assetsToLoad = [
         container.appendChild(script);
     }
         }
-
 // 👉 အသံဖိုင်များကို ကြိုတင် Load ထားမည်
 const popClickAudio = new Audio('PopClick.mp3');
 const notiAudio = new Audio('Noti.mp3');
@@ -1241,28 +1236,24 @@ function playCashSound() {
     cashAudio.currentTime = 0;
     cashAudio.play().catch(e => console.log("Audio blocked:", e));
 }
-
+        
 function checkAuthAndStart() {
-    // ၁။ ပထမဆုံး Telegram Mini App ထဲက ဝင်လာတာ ဟုတ်မဟုတ် အရင်စစ်မယ်
     const tg = window.Telegram && window.Telegram.WebApp;
     const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
 
     if (tgUser) {
-        // Mini App ထဲက ဝင်လာတာဆိုရင် LocalStorage ထဲ အော်တိုသိမ်းပြီး Home ကို တန်းသွားမယ်
         localStorage.setItem('tg_user', JSON.stringify(tgUser));
-        goHomeWithTransition();
+        goHomeWithTransition(); // 👈 ဒီမှာလည်း goHomeWithTransition ကိုပဲ သုံးမယ်
         return;
     }
 
-    // ၂။ ရိုးရိုး Browser ဖြစ်နေရင်တော့ LocalStorage မှာ အရင်က ဝင်ထားတာ ရှိမရှိ ဆက်စစ်မယ်
     const savedUser = localStorage.getItem('tg_user');
     if (!savedUser) {
         openTelegramLoginPage();
     } else {
-        goHomeWithTransition();
+        goHomeWithTransition(); // 👈 ဒီမှာလည်း သုံးမယ်
     }
-}
-
+        }
 // 👉 Telegram က Login အောင်မြင်ပါက အလိုအလျောက် ခေါ်ပေးမည့် function အစစ်
 function onTelegramAuth(user) {
     console.log('Telegram Login Success:', user);
