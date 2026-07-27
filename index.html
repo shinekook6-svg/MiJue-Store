@@ -1150,20 +1150,37 @@ const assetsToLoad = [
                 }, 300); // Fade out transition ပြီးအောင် ခဏစောင့်မည်
             }, 1500);
         }
-function openTelegramLoginPage() {
+        function openTelegramLoginPage() {
+    // 1. Telegram Mini App ထဲက ဝင်လာတာ ဟုတ်မဟုတ် အရင်စစ်မယ်
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+
+    if (tgUser) {
+        // Telegram Mini App ထဲက ဝင်လာတာဖြစ်လို့ Login ခလုတ်ပြစရာမလိုဘဲ 
+        // User ရဲ့ Data ကို ယူပြီး Store စာမျက်နှာကို တန်းဖွင့်ပေးလိုက်မယ်
+        console.log("Telegram Mini App user detected:", tgUser);
+        
+        // LocalStorage မှာ သိမ်းချင်လည်း သိမ်းလို့ရတယ်
+        localStorage.setItem('tg_user', JSON.stringify(tgUser));
+
+        // Store ရဲ့ ပင်မ Page ကို တန်းခေါ်လိုက်မယ် (မင်းရဲ့ Store ပွင့်တဲ့ function နာမည်နဲ့ လဲပေးရမယ်)
+        if (typeof renderStorePage === 'function') {
+            renderStorePage(tgUser);
+        }
+        return; // ဒီအောက်ကို ဆက်မသွားတော့ဘူး
+    }
+
+    // 2. ရိုးရိုး Browser (Chrome/Safari) ကနေ ဝင်လာရင်တော့ မူလအတိုင်း Telegram Login Widget ခလုတ်ကို ပြမယ်
     const mainApp = document.getElementById('main-app');
     mainApp.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; padding: 20px; text-align: center; background: radial-gradient(circle at center, #3b1446 0%, #1a0b1e 100%);">
             
-            <!-- Card Container -->
             <div style="background: rgba(43, 16, 53, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(244, 114, 182, 0.2); border-radius: 24px; padding: 30px 20px; width: 100%; max-width: 380px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 
-                <!-- Telegram Logo with Glow Effect -->
                 <div style="margin-bottom: 20px; display: inline-flex; padding: 15px; background: rgba(36, 129, 204, 0.15); border-radius: 50%; box-shadow: 0 0 20px rgba(36, 129, 204, 0.3);">
                     <img src="TelegramLogo.png" alt="Telegram" style="width: 50px; height: 50px; object-fit: contain; border-radius: 50%;" onerror="this.outerHTML='🔵'">
                 </div>
 
-                <!-- Title & Subtitle -->
                 <h2 style="color: #fce7f3; margin-bottom: 8px; font-size: 22px; font-weight: bold;">MiJue Store</h2>
                 <p style="color: #f472b6; font-size: 12px; margin-bottom: 20px; letter-spacing: 0.5px;">SECURE GAMING TOP-UP</p>
                 
@@ -1171,12 +1188,10 @@ function openTelegramLoginPage() {
                     ပစ္စည်းများ ဝယ်ယူရန်နှင့် Order တင်ရန်အတွက် Telegram ဖြင့် ဝင်ရောက်ပေးပါ။
                 </p>
 
-                <!-- 👉 Telegram Official Login Widget ထည့်မယ့် နေရာ -->
                 <div id="telegram-login-container" style="display: flex; justify-content: center; width: 100%;"></div>
 
             </div>
 
-            <!-- Footer Text -->
             <div style="margin-top: 30px; color: #94a3b8; font-size: 11px;">
                 Powered by Karo © 2026
             </div>
@@ -1184,19 +1199,19 @@ function openTelegramLoginPage() {
         </div>
     `;
 
-    // 👉 Telegram Script ကို Dynamic ဖြင့် ဖန်တီးထည့်သွင်းခြင်း
     const container = document.getElementById('telegram-login-container');
     if (container) {
         const script = document.createElement('script');
         script.async = true;
         script.src = "https://telegram.org/js/telegram-widget.js?22";
-        script.setAttribute('data-telegram-login', 'MiJueStoreBot'); // 👈 မင်းရဲ့ တကယ့် Bot Username ထည့်ရန် (ဥပမာ - KaroStoreBot)
+        script.setAttribute('data-telegram-login', 'MiJueStoreBot'); 
         script.setAttribute('data-size', 'large');
-        script.setAttribute('data-onauth', 'onTelegramAuth(user)'); // Login အောင်မြင်ရင် ဒီ function ကို အလိုအလျောက်ခေါ်မည်
+        script.setAttribute('data-onauth', 'onTelegramAuth(user)'); 
         script.setAttribute('data-request-access', 'write');
         container.appendChild(script);
     }
-}
+        }
+
 // 👉 အသံဖိုင်များကို ကြိုတင် Load ထားမည်
 const popClickAudio = new Audio('PopClick.mp3');
 const notiAudio = new Audio('Noti.mp3');
@@ -1227,6 +1242,27 @@ function playCashSound() {
     cashAudio.play().catch(e => console.log("Audio blocked:", e));
 }
 
+function checkAuthAndStart() {
+    // ၁။ ပထမဆုံး Telegram Mini App ထဲက ဝင်လာတာ ဟုတ်မဟုတ် အရင်စစ်မယ်
+    const tg = window.Telegram && window.Telegram.WebApp;
+    const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+
+    if (tgUser) {
+        // Mini App ထဲက ဝင်လာတာဆိုရင် LocalStorage ထဲ အော်တိုသိမ်းပြီး Home ကို တန်းသွားမယ်
+        localStorage.setItem('tg_user', JSON.stringify(tgUser));
+        goHomeWithTransition();
+        return;
+    }
+
+    // ၂။ ရိုးရိုး Browser ဖြစ်နေရင်တော့ LocalStorage မှာ အရင်က ဝင်ထားတာ ရှိမရှိ ဆက်စစ်မယ်
+    const savedUser = localStorage.getItem('tg_user');
+    if (!savedUser) {
+        openTelegramLoginPage();
+    } else {
+        goHomeWithTransition();
+    }
+}
+
 // 👉 Telegram က Login အောင်မြင်ပါက အလိုအလျောက် ခေါ်ပေးမည့် function အစစ်
 function onTelegramAuth(user) {
     console.log('Telegram Login Success:', user);
@@ -1236,14 +1272,6 @@ function onTelegramAuth(user) {
 
     // ပင်မ Home Page သို့ ခေါ်သွားမည်
     goHomeWithTransition();
-}
-function checkAuthAndStart() {
-    const savedUser = localStorage.getItem('tg_user');
-    if (!savedUser) {
-        openTelegramLoginPage();
-    } else {
-        goHomeWithTransition();
-    }
 }
         // MLBB ကို နှိပ်တဲ့အခါ (Scale ဖြစ်ချိန် 0.3s ပေးပြီးမှ Transition ခေါ်မည်)
 function openMlbbPage() {
