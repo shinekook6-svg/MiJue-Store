@@ -1265,7 +1265,7 @@ function onTelegramAuth(user) {
     // ပင်မ Home Page သို့ ခေါ်သွားမည်
     goHomeWithTransition();
 }
-        // MLBB ကို နှိပ်တဲ့အခါ (Scale ဖြစ်ချိန် 0.3s ပေးပြီးမှ Transition ခေါ်မည်)
+// 1. MLBB Product ရွေးချယ်သည့် စာမျက်နှာ (ID တောင်းဆိုမှုများကို ဖြုတ်ထုတ်ထားသည်)
 function openMlbbPage() {
     setTimeout(() => {
         triggerTransition(() => {
@@ -1288,16 +1288,8 @@ function openMlbbPage() {
 
                 <div style="padding-bottom: 140px; width: 100%;">
                 
-                    <div class="id-input-card">
-                        <h3>1. အသုံးပြုသူ ID ထည့်သွင်းပါ</h3>
-                        <div class="id-fields-row">
-                            <input type="text" id="mlbb-userid" inputmode="numeric" pattern="[0-9]*" placeholder="Your Game ID">
-                            <input type="text" id="mlbb-zoneid" inputmode="numeric" pattern="[0-9]*" placeholder="Zone" style="max-width: 100px;">
-                        </div>
-                    </div>
-
-                    <div style="padding: 0 15px 0 15px;">
-                        <div class="section-title" style="margin-bottom: 5px;">2. စိန်အမျိုးအစားများ ရွေးချယ်ပါ</div>
+                    <div style="padding: 0 15px 0 15px; margin-top: 10px;">
+                        <div class="section-title" style="margin-bottom: 5px;">စိန်အမျိုးအစားများ ရွေးချယ်ပါ</div>
                     </div>
 
                     <div class="section-header-title">Weekly Pass</div>
@@ -1456,39 +1448,17 @@ function selectMlbbProduct(productName, productPrice) {
     document.getElementById('selected-item-price').innerText = productPrice;
 }
 
+// Product ရွေးပြီး "အခု ဝယ်မည်" နှိပ်လျှင် တိုက်ရိုက် Checkout မျက်နှာပြင်သို့ သွားမည်
 function handleMlbbCheckout() {
-    const userInput = document.getElementById('mlbb-userid');
-    const zoneInput = document.getElementById('mlbb-zoneid');
-    
     if (!selectedMlbbProduct) {
         showInlineError('ကျေးဇူးပြု၍ ဝယ်ယူလိုသော ပစ္စည်းကို ရွေးချယ်ပါ။');
         return;
     }
-
-    const userId = userInput.value.trim();
-    const zoneId = zoneInput.value.trim();
-
-    userInput.classList.remove('error-input');
-    zoneInput.classList.remove('error-input');
-
-    if (!userId || !(/^\d+$/.test(userId))) {
-        userInput.classList.add('error-input');
-        userInput.focus();
-        showInlineError('ကျေးဇူးပြု၍ Game ID တွင် ဂဏန်းများကိုသာ ထည့်ပါ။');
-        return;
-    }
-
-    if (!zoneId || !(/^\d+$/.test(zoneId))) {
-        zoneInput.classList.add('error-input');
-        zoneInput.focus();
-        showInlineError('ကျေးဇူးပြု၍ Zone ID တွင် ဂဏန်းများကိုသာ ထည့်ပါ။');
-        return;
-    }
-
-    openPaymentGateway(userId, zoneId, selectedMlbbProduct, selectedMlbbPriceVal);
+    openPaymentGateway(selectedMlbbProduct, selectedMlbbPriceVal);
 }
 
-function openPaymentGateway(userId, zoneId, selectedItem, selectedPrice) {
+// 2. ငွေပေးချေမှုနှင့် Game ID ထည့်သွင်းရန် မျက်နှာပြင်အသစ်
+function openPaymentGateway(selectedItem, selectedPrice) {
     setTimeout(() => {
         triggerTransition(() => {
             const mainApp = document.getElementById('main-app');
@@ -1505,18 +1475,27 @@ function openPaymentGateway(userId, zoneId, selectedItem, selectedPrice) {
                     </div>
                 </div>
 
-                <div style="padding-bottom: 140px; width: 100%; padding: 15px; color: white; text-align: left;">
+                <div style="padding-bottom: 200px; width: 100%; padding: 15px; color: white; text-align: left;">
                     
+                    <!-- ဝယ်ယူမည့် အချက်အလက် အနှစ်ချုပ် -->
                     <div class="id-input-card" style="margin-bottom: 15px; background: rgba(43, 16, 53, 0.8); border: 1px solid #581c87; border-radius: 12px; padding: 15px;">
                         <h3 style="margin: 0 0 8px 0; color: #fce7f3; font-size: 13px;">📋 ဝယ်ယူမည့် အချက်အလက် အနှစ်ချုပ်</h3>
                         <div style="font-size: 12px; color: #cbd5e1; line-height: 1.6;">
                             <div>ပစ္စည်း: <strong style="color: #4ade80;">${selectedItem}</strong></div>
                             <div>ကျသင့်ငွေ: <strong style="color: #fcd116; font-size: 14px;">${selectedPrice}</strong></div>
-                            <div>Game ID: <strong style="color: #fff;">${userId} (${zoneId})</strong></div>
                         </div>
                     </div>
 
-                    <div class="section-title" style="margin-bottom: 8px; font-size: 13px; color: #f8fafc; font-weight: bold;">3. ငွေပေးချေမှု ရွေးချယ်ရန်</div>
+                    <!-- 🌟 Game ID နှင့် Zone ID ထည့်သွင်းမည့် နေရာ (ဒီနေရာသို့ ရွှေ့လာပါပြီ) -->
+                    <div class="id-input-card" style="margin-bottom: 15px; background: rgba(43, 16, 53, 0.8); border: 1px solid #581c87; border-radius: 12px; padding: 15px;">
+                        <h3 style="margin: 0 0 8px 0; color: #fce7f3; font-size: 13px;">1. အသုံးပြုသူ ID ထည့်သွင်းပါ</h3>
+                        <div class="id-fields-row" style="display: flex; gap: 10px;">
+                            <input type="text" id="mlbb-userid" inputmode="numeric" pattern="[0-9]*" placeholder="Your Game ID" style="width: 100%; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 10px; color: white; outline: none;">
+                            <input type="text" id="mlbb-zoneid" inputmode="numeric" pattern="[0-9]*" placeholder="Zone" style="max-width: 100px; background: #1e293b; border: 1px solid #475569; border-radius: 8px; padding: 10px; color: white; outline: none;">
+                        </div>
+                    </div>
+
+                    <div class="section-title" style="margin-bottom: 8px; font-size: 13px; color: #f8fafc; font-weight: bold;">2. ငွေပေးချေမှု ရွေးချယ်ရန်</div>
                     
                     <div style="display: flex; gap: 10px; margin-bottom: 15px;">
                         <div id="wave-card" class="product-card-box" style="flex: 1; text-align: center; cursor: pointer; padding: 12px; background: #333333; border: 1px solid #475569; border-radius: 10px;" onclick="playPopClick(); selectPaymentMethod('Wave')">
@@ -1534,7 +1513,7 @@ function openPaymentGateway(userId, zoneId, selectedItem, selectedPrice) {
                         <p id="pay-info" style="font-size: 12px; color: #4ade80; line-height: 1.4; margin: 0;"></p>
                     </div>
 
-                    <div class="section-title" style="margin-bottom: 8px; font-size: 13px; color: #f8fafc; font-weight: bold;">4. အသေးစိတ် ထည့်သွင်းရန်</div>
+                    <div class="section-title" style="margin-bottom: 8px; font-size: 13px; color: #f8fafc; font-weight: bold;">3. အသေးစိတ် ထည့်သွင်းရန်</div>
                     
                     <div class="id-input-card" style="margin-bottom: 15px; background: rgba(30, 41, 59, 0.7); border: 1px solid #475569; border-radius: 10px; padding: 12px;">
                         <div style="font-size: 11px; color: #cbd5e1; margin-bottom: 10px; line-height: 1.4;">
@@ -1591,14 +1570,35 @@ function selectPaymentMethod(type) {
     }
 }
 
+// 3. ငွေပေးချေမှု အတည်ပြု၍ Game ID များကို စစ်ဆေးပြီး Telegram သို့ ပို့မည့် Function
 function confirmPayment() {
-    const ssInput = document.getElementById('payment-ss');
-    const telegramCheck = document.getElementById('telegram-check');
     const userInput = document.getElementById('mlbb-userid');
     const zoneInput = document.getElementById('mlbb-zoneid');
+    const ssInput = document.getElementById('payment-ss');
+    const telegramCheck = document.getElementById('telegram-check');
 
-    if (!userInput.value.trim() || !zoneInput.value.trim()) {
-        showInlineError('ကျေးဇူးပြု၍ Game ID နှင့် Zone ID ကို အပြည့်အစုံ ထည့်သွင်းပါ။');
+    if (!userInput || !zoneInput) {
+        showInlineError('ကျေးဇူးပြု၍ Game ID နှင့် Zone ID ကို ထည့်သွင်းပါ။');
+        return;
+    }
+
+    const userId = userInput.value.trim();
+    const zoneId = zoneInput.value.trim();
+
+    userInput.classList.remove('error-input');
+    zoneInput.classList.remove('error-input');
+
+    if (!userId || !(/^\d+$/.test(userId))) {
+        userInput.classList.add('error-input');
+        userInput.focus();
+        showInlineError('ကျေးဇူးပြု၍ Game ID တွင် ဂဏန်းများကိုသာ ထည့်ပါ။');
+        return;
+    }
+
+    if (!zoneId || !(/^\d+$/.test(zoneId))) {
+        zoneInput.classList.add('error-input');
+        zoneInput.focus();
+        showInlineError('ကျေးဇူးပြု၍ Zone ID တွင် ဂဏန်းများကိုသာ ထည့်ပါ။');
         return;
     }
 
@@ -1622,11 +1622,8 @@ function confirmPayment() {
 
     showInlineError('');
 
-    const selectedItem = document.getElementById('selected-item-name') ? document.getElementById('selected-item-name').innerText : selectedMlbbProduct;
-    const selectedPrice = document.getElementById('selected-item-price') ? document.getElementById('selected-item-price').innerText : selectedMlbbPriceVal;
-    
-    const userId = userInput.value.trim();
-    const zoneId = zoneInput.value.trim();
+    const selectedItem = selectedMlbbProduct;
+    const selectedPrice = selectedMlbbPriceVal;
     const usernameDisplay = user.username ? `@${user.username}` : 'No Username';
 
     // --- TELEGRAM BOT API CONFIG ---
@@ -1636,7 +1633,6 @@ function confirmPayment() {
 
     const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
 
-    // 🚀 Plain Text သုံးထား၍ Error လုံးဝ မတက်တော့ပါ
     const channelMessage = `New MLBB Order! (Karo Store)\n\n` +
                            `ပစ္စည်း: ${selectedItem}\n` +
                            `ကျသင့်ငွေ: ${selectedPrice}\n` +
@@ -1658,7 +1654,6 @@ function confirmPayment() {
         const formData = new FormData();
         formData.append('chat_id', targetChatId);
         formData.append('caption', captionText);
-        // Markdown ဖြုတ်ထားသည် (Plain Text သာ ပို့မည်)
         formData.append('photo', ssInput.files[0]);
 
         return fetch(url, {
